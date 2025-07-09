@@ -1,13 +1,13 @@
 // src/mui-generator.js
-import fs from 'fs-extra';
-import path from 'path';
-import chalk from 'chalk';
+import fs from "fs-extra";
+import path from "path";
+import chalk from "chalk";
 
 export async function generateMuiThemeFiles(config) {
   const { language, primaryColor, fontFamily, fontSize } = config;
-  const ext = language === 'TypeScript' ? 'ts' : 'js';
+  const ext = language === "TypeScript" ? "ts" : "js";
 
-  const outDir = path.join(process.cwd(), 'theme');
+  const outDir = path.join(process.cwd(), "theme");
   await fs.ensureDir(outDir);
 
   // 1. palette
@@ -127,12 +127,12 @@ export default function AppThemeProvider({ children }) {
 `;
 
   const files = [
-    { name: 'palette', code: palette },
-    { name: 'typography', code: typography },
-    { name: 'spacing', code: spacing },
-    { name: 'shadows', code: shadows },
-    { name: 'getDesignTokens', code: designTokens },
-    { name: 'theme', code: themeSetup },
+    { name: "palette", code: palette },
+    { name: "typography", code: typography },
+    { name: "spacing", code: spacing },
+    { name: "shadows", code: shadows },
+    { name: "getDesignTokens", code: designTokens },
+    { name: "theme", code: themeSetup },
   ];
 
   for (const file of files) {
@@ -141,7 +141,72 @@ export default function AppThemeProvider({ children }) {
     console.log(chalk.green(`✔ ${file.name}.${ext} created`));
   }
 
-  // Always write context in TS (for MUI projects it's universal)
-  await fs.writeFile(path.join(outDir, 'ModeContext.tsx'), contextCode);
-  console.log(chalk.green('✔ ModeContext.tsx created'));
+  // MUI.md content
+  const readme = `
+# 🎨 MUI Theme Setup
+
+This theme was generated using your inputs. You can now customize MUI easily by editing these files:
+
+| File | Purpose |
+|------|---------|
+| \`palette.${ext}\` | Manage primary, secondary, error colors |
+| \`typography.${ext}\` | Base font family, sizes, and button styles |
+| \`spacing.${ext}\` | Spacing unit (default 8px) |
+| \`shadows.${ext}\` | Shadow levels |
+| \`getDesignTokens.${ext}\` | Combines all into theme tokens |
+| \`theme.${ext}\` | Entry point for \`createTheme()\` |
+
+---
+
+## 🌓 How to Enable Dark & Light Theme Switching
+
+You can use MUI's \`createTheme\` with \`mode\` like so:
+
+\`\`\`ts
+// theme/theme.ts
+import { createTheme } from '@mui/material/styles';
+import getDesignTokens from './getDesignTokens';
+
+const theme = (mode = 'light') => createTheme(getDesignTokens(mode));
+
+export default theme;
+\`\`\`
+
+Then, in your app:
+
+\`\`\`tsx
+// _app.tsx or main.tsx
+import { ThemeProvider, CssBaseline } from '@mui/material';
+import theme from './theme/theme'; // adjust path
+import { useMemo, useState } from 'react';
+
+export default function App({ Component, pageProps }) {
+  const [mode, setMode] = useState('light');
+
+  const appliedTheme = useMemo(() => theme(mode), [mode]);
+
+  return (
+    <ThemeProvider theme={appliedTheme}>
+      <CssBaseline />
+      <Component {...pageProps} />
+      <button onClick={() => setMode((prev) => (prev === 'light' ? 'dark' : 'light'))}>
+        Toggle Theme
+      </button>
+    </ThemeProvider>
+  );
+}
+\`\`\`
+
+✅ You can build your own \`ThemeContext\` or use Zustand/Jotai/Redux to share the mode across your app.
+
+---
+
+## 💡 Tips
+
+- You can delete any theme file you don't need
+- To add custom breakpoints, components, or transitions, modify \`getDesignTokens\`
+`;
+
+  await fs.writeFile(path.join(outDir, "MUI.md"), readme);
+  console.log(chalk.green("✔ MUI.md created in theme/"));
 }
