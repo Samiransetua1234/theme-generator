@@ -1,0 +1,16 @@
+{
+  "name": "theme-generator",
+  "version": "1.0.0",
+  "type": "module",
+  "bin": {
+    "theme-gen": "./bin/cli.js"
+  },
+  "scripts": {
+    "start": "node bin/cli.js"
+  },
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "fs-extra": "^11.2.0",
+    "inquirer": "^8.2.6"
+  }
+}
